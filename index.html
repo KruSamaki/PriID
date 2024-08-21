@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student ID Card</title>
+    <style>
+        @font-face {
+            font-family: 'moul';
+            src: url('fonts/KhmerOS_muollight.ttf');
+        }
+        @font-face {
+            font-family: 'content';
+            src: url('fonts/KhmerOS_siemreap.ttf');
+        }
+        body {
+            font-family: 'content', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+            font-size: 18px;
+        }
+        #studentName {
+            font-family: 'moul';
+            font-size: 20px;
+            color: #d85c28;
+        }
+        .card {
+            width: 340px;
+            padding: 20px;
+            background-color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            border: 5px solid #cc3300;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+        }
+        .card-header {
+            text-align: center;
+            font-size: 14px;
+            color: #d85c28;
+        }
+        .card-header img {
+            width: 80px;
+        }
+        .card-title {
+            font-family: 'moul', sans-serif;
+            color: #f58220;
+            font-size: 18px;
+            margin: 2px 0;
+        }
+        .card-info {
+            font-size: 16px;
+            text-align: left;
+            margin-top: 15px;
+        }
+        .card-info p {
+            margin: 2px 0;
+        }
+        .card-photo {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .card-photo img {
+            width: 80px;
+            height: 100px;
+            object-fit: cover;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .card-footer {
+            font-size: 12px;
+            color: #888;
+            margin-top: 1px;
+            text-align: center;
+        }
+        .card-footer img {
+            width: 100px;
+            margin-top: 1px;
+        }
+        .qr-code {
+            margin-top: 5px;
+        }
+        .cardtitle{
+            font-family: 'moul';
+            font-size: 20px;
+        }
+        .schoolY{
+            color:black;
+        }
+        .scname{
+            font-family: 'moul';
+            font-size: 20px;
+            color:black;
+        }
+        .imglogo{
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card" id="studentCard">
+    <div class="card-header">
+        <img class="imglogo" src="scLogo.png" alt="School Logo">
+        <!-- <p>Ministry of Education, Youth, and Sport</p> -->
+        <p class="scname">សាលាបឋមសិក្សាសម្ដេចព្រះរាជអគ្គមហេសីនរោត្តមមុនីនាថសីហនុ</p>
+        <h3 class="cardtitle">បណ្ណសម្គាល់ខ្លួនសិស្ស</h3>
+        <div class="schoolY">ឆ្នាំសិក្សា ២០២៤-២០២៥</div>
+
+    </div>
+
+    <h3 id="studentName"></h3>
+
+    <div class="card-photo">
+        <img id="studentPhoto" alt="Student Photo">
+    </div>
+
+    <div class="card-info">
+        <p id="studentGender"></p>
+        <p id="studentGrade"></p>
+        <p id="studentPhone"></p>
+        <p id="studentID"></p>
+    </div>
+
+    <div class="card-footer">
+        <img src="" alt="QR Code" class="qr-code" id="qrCode">
+    </div>
+</div>
+<a href="PrimaryCard1.html">Click to manage</a>
+<script>
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const studentID = urlParams.get('id');
+
+    const apiEndpoint = 'https://sheets.googleapis.com/v4/spreadsheets/13-jQ1jLcCPtjfrh9lJsvxXo2ti2J9XJ8c78jYe0063g/values/Sheet1?key=AIzaSyCVySc4qfLSCIelBrcqvdhoxGWWezmUd2g';
+
+    fetch(apiEndpoint)
+        .then(response => response.json())
+        .then(data => {
+            const rows = data.values;
+            const headers = rows[0];
+            const studentRow = rows.find(row => row[headers.indexOf('ID')] === studentID);
+
+            if (studentRow) {
+                const student = {};
+                headers.forEach((header, index) => {
+                    student[header] = studentRow[index];
+                });
+
+                document.getElementById('studentName').innerText = student.Name;
+                document.getElementById('studentGender').innerText = `ភេទ: ${student.Gender}`;
+                document.getElementById('studentGrade').innerText = `ថ្នាក់ទី: ${student.Grade}`;
+                document.getElementById('studentPhone').innerText = `ទូរស័ព្ទ: ${student.Phone}`;
+                // document.getElementById('studentID').innerText = `អត្តលេខ: ${student.ID}`;
+                document.getElementById('studentPhoto').src = student.Photo;
+                document.getElementById('qrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${window.location.href}`;
+            } else {
+                document.getElementById('studentCard').innerHTML = '<p>ទិន្នន័យសិស្សរកមិនឃើញទេ!</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            document.getElementById('studentCard').innerHTML = '<p>មិនអាចដំណើរការបាន សូមពិនិត្យអ៊ីនធឺណិតលោកអ្នក</p>';
+        });
+</script>
+
+</body>
+</html>

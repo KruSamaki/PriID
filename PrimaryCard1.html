@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student ID Card System</title>
+    <style>
+        @font-face {
+            font-family: 'moul';
+            src: url('fonts/KhmerOS_muollight.ttf');
+        }
+
+        @font-face {
+            font-family: 'content';
+            src: url('fonts/KhmerOS_siemreap.ttf');
+        }
+
+        body {
+            font-family: 'content', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: black;
+        }
+
+        .page {
+            width: 21cm;
+            height: 29.7cm;
+            padding-left: calc((21cm - 3 * 5.3cm) / 2);
+            padding-top: calc((29.7cm - 3 * 8.3cm) / 2);
+            display: grid;
+            grid-template-columns: repeat(3, 5.3cm);
+            grid-template-rows: repeat(3, 8.3cm);
+            gap: 0;
+            page-break-after: always;
+            box-sizing: border-box;
+            background-color: #f4f4f9;
+        }
+
+        .card {
+            width: 5.3cm;
+            height: 8.3cm;
+            padding: 2px;
+            background-color: #fff;
+            text-align: center;
+            border: 1px solid #000;
+            box-sizing: border-box;
+            position: relative;
+            background-color: #f4f4f9;
+        }
+
+        .card-header {
+            height: 1.6cm;
+            background-color: #f9b233;
+            text-align: left;
+            padding-left: 0.5cm;
+            padding-right: 0.5cm;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header img {
+            height: 1.7cm;
+        }
+
+        .card-header-title {
+            font-family: 'moul', sans-serif;
+            color: #034ea1;
+            font-size: 8px;
+        }
+
+        .card-header img {
+            width: 45px;
+            height: 45px;
+        }
+
+        .stu-photo {
+            width: 1.6cm;
+            height: 1.8cm;
+            margin-top: 0.1cm;
+            border: 1px solid #000;
+        }
+
+        .card-info {
+            font-size: 10px;
+            text-align: left;
+            padding-left: 0.5cm;
+            margin-top: 0.1cm;
+            width: 100%;
+        }
+
+        .card-info p {
+            margin: 1px 0;
+        }
+
+        .card-footer {
+            position: absolute;
+            bottom: 0.2cm;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 6px;
+            text-align: center;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+            padding-left: 0.5cm;
+            padding-right: 0.5cm;
+        }
+
+        .stamp {
+            width: 2.5cm;
+            height: auto;
+            margin-left: 10px;
+        }
+
+        .qr-code {
+            width: 1.5cm;
+            height: auto;
+            margin-right: 10px;
+        }
+
+        img.qr-code {
+            margin-left: 10px;
+        }
+
+        .select-checkbox {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+        }
+
+        @media print {
+            #searchContainer,
+            #printSelectedButton,
+            #printAllButton,
+            .select-checkbox {
+                display: none;
+            }
+
+            .card {
+                background-color: #f4f4f9 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        #searchContainer {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #searchInput {
+            padding: 5px;
+            font-size: 14px;
+            width: 250px;
+            margin-right: 10px;
+        }
+
+        #searchFilter {
+            padding: 5px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        #searchButton {
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #034ea1;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #printSelectedButton,
+        #printAllButton {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #f9b233;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        #cardsContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        div.stuName{
+            width: 100%;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            font-size: 12px;
+            font-family: 'moul';
+            margin: auto;
+        }
+    </style>
+    </style>
+</head>
+<body>
+
+    <div id="searchContainer">
+        <input type="text" id="searchInput" placeholder="ស្វែងរកឈ្មោះ ឬ អត្តលេខសិស្ស">
+        <select id="searchFilter">
+            <option value="name">ឈ្មោះ</option>
+            <option value="id">អត្តលេខ</option>
+        </select>
+        <button id="searchButton">ស្វែងរក</button>
+    </div>
+
+    <button id="printSelectedButton" onclick="printSelectedCards()">ព្រីនកាតដែលបានជ្រើសរើស</button>
+    <button id="printAllButton" onclick="printAllCards()">ព្រីនកាតទាំងអស់</button>
+
+    <div id="cardsContainer"></div>
+
+    <script>
+        const apiEndpoint = 'https://sheets.googleapis.com/v4/spreadsheets/13-jQ1jLcCPtjfrh9lJsvxXo2ti2J9XJ8c78jYe0063g/values/Sheet1?key=AIzaSyCVySc4qfLSCIelBrcqvdhoxGWWezmUd2g';
+
+        fetch(apiEndpoint)
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('cardsContainer');
+                const cardsPerPage = 9;
+                let page;
+
+                data.values.slice(1).forEach((student, index) => {
+                    if (index % cardsPerPage === 0) {
+                        page = document.createElement('div');
+                        page.className = 'page';
+                        container.appendChild(page);
+                    }
+
+                    const [StudentID, StudentName, Gender, Grade, Phone, Img] = student;
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <input type="checkbox" class="select-checkbox">
+                        <div class="card-header">
+                            <img class="sclogo" src="scLogo.png" alt="School Logo">
+                            <p class="card-header-title">បស.ព្រះរាជអគ្គមហេសី</p>
+                        </div>
+                        <img src="${Img}" alt="Student Photo" class="stu-photo">
+                        <div class="stuName">${StudentName}</div>
+                        <div class="card-info">
+                            
+                            <!--<p>ឈ្មោះ: ${StudentName}</p>-->
+                            <p>ភេទ: ${Gender}</p>
+                            <p>ថ្នាក់: ${Grade}</p>
+                            <p>ទូរស័ព្ទ: ${Phone}</p>
+                        </div>
+                        <div class="card-footer">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?data=ID:${StudentID}&amp;size=50x50" alt="QR code" class="qr-code">
+                            <img src="stamp1.png" alt="Director's Stamp" class="stamp">
+                        </div>`;
+                    page.appendChild(card);
+                });
+            });
+
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const filter = document.getElementById('searchFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.card');
+
+            cards.forEach(card => {
+                const studentName = card.querySelector('.card-info p:nth-child(1)').textContent.toLowerCase();
+                const studentID = card.querySelector('.card-info p:nth-child(2)').textContent.toLowerCase();
+
+                if (filter === 'name' && studentName.includes(searchInput)) {
+                    card.style.display = 'block';
+                } else if (filter === 'id' && studentID.includes(searchInput)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        function printSelectedCards() {
+            const selectedCards = document.querySelectorAll('.select-checkbox:checked');
+            if (selectedCards.length === 0) {
+                alert('សូមជ្រើសរើសកាតដើម្បីព្រីន');
+                return;
+            }
+
+            const container = document.getElementById('cardsContainer');
+            const printContainer = document.createElement('div');
+
+            printContainer.className = 'page';
+
+            selectedCards.forEach(cardCheckbox => {
+                const card = cardCheckbox.closest('.card').cloneNode(true);
+                card.querySelector('.select-checkbox').style.display = 'none';
+                printContainer.appendChild(card);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(printContainer);
+
+            window.print();
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
+        function printAllCards() {
+            window.print();
+        }
+    </script>
+
+</body>
+</html>
